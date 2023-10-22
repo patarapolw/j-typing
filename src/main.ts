@@ -1,8 +1,12 @@
 import './style.css';
+
+import * as wanakana from 'wanakana';
+import yaml from 'yaml';
+
+import { Kanjidic2Character } from '@scriptin/jmdict-simplified-types';
+
 import { Dict } from './dict.ts';
 import { Elem } from './html.ts';
-import yaml from 'yaml';
-import * as wanakana from 'wanakana';
 
 const mainEl = new Elem('main');
 
@@ -133,8 +137,14 @@ async function loadKanji() {
 
   form.onsubmit = (ev) => {
     ev.preventDefault();
-    const { value: answer } = form.typingEl.el;
-    console.log(form.result);
+    const preAnswer = form.typingEl.el.value
+      .toLocaleLowerCase()
+      .replace(/\p{Z}+/gu, ' ')
+      .trim();
+    const answers = preAnswer
+      ? preAnswer.split(/[/・]/g).map((v) => v.trim())
+      : null;
+
     if (form.result) {
       if (form.qtype === 'Reading') {
         form.qtype = 'Meaning';
@@ -149,127 +159,62 @@ async function loadKanji() {
 
     form.result = 'manual';
 
-    if (entry.readingMeaning) {
+    if (answers && entry.readingMeaning) {
       if (form.qtype === 'Reading') {
         form.result = 'incorrect';
       }
 
-      for (const g of entry.readingMeaning.groups) {
-        if (form.qtype === 'Reading') {
-          for (const r of g.readings) {
-            if (r.type === 'ja_on') {
-              const answerKata = wanakana.toKatakana(answer);
-              if (r.value === answerKata) {
-                form.result = 'correct';
-                form.typingEl.el.value = answerKata;
+      if (
+        answers.every((ans, i) => {
+          if (!entry.readingMeaning) return;
+
+          for (const g of entry.readingMeaning.groups) {
+            if (form.qtype === 'Reading') {
+              for (const r of g.readings) {
+                if (r.type === 'ja_on') {
+                  const answerKata = wanakana.toKatakana(ans);
+                  if (r.value === answerKata) {
+                    answers[i] = answerKata;
+                    return true;
+                  }
+                } else if (r.type === 'ja_kun') {
+                  if (r.value.split('.')[0] === ans) {
+                    return true;
+                  }
+                }
               }
-            } else if (r.type === 'ja_kun') {
-              if (r.value.split('.')[0] === answer) {
-                form.result = 'correct';
+            } else {
+              for (const m of g.meanings) {
+                if (m.value.toLocaleLowerCase() === ans) {
+                  return true;
+                }
               }
             }
           }
-        } else {
-          for (const m of g.meanings) {
-            if (m.value.toLocaleLowerCase() === answer) {
-              form.result = 'correct';
+
+          if (form.qtype === 'Reading') {
+            for (const r of entry.readingMeaning.nanori) {
+              if (r === ans) {
+                return true;
+              }
             }
           }
-        }
+
+          return false;
+        })
+      ) {
+        form.result = 'correct';
+        form.typingEl.el.value = answers.join(
+          form.qtype === 'Reading' ? '・' : ' / ',
+        );
       }
     }
 
     if ((form.result as string) === 'retry') {
     } else {
       resultEl.append(
-        ...(entry.readingMeaning
-          ? entry.readingMeaning.groups
-              .map((g, i) => {
-                if (form.qtype === 'Reading') {
-                  const out: Elem[] = [];
-
-                  const readings: Record<string, string[]> = {};
-                  for (const r of g.readings) {
-                    const prev = readings[r.type] || [];
-                    prev.push(r.value);
-                    readings[r.type] = prev;
-                  }
-
-                  {
-                    const k = 'ja_on';
-                    const rs = readings[k];
-                    if (rs) {
-                      const rEl = new Elem('div')
-                        .attr({ style: 'flex-grow: 1' })
-                        .append(new Elem('b').innerText('Onyomi: '));
-                      let r = '';
-                      while ((r = rs.shift() || '')) {
-                        rEl.append(r);
-                        if (rs.length) {
-                          rEl.append(', ');
-                        }
-                      }
-                      out.push(rEl);
-                      delete readings[k];
-                    }
-                  }
-
-                  {
-                    const k = 'ja_kun';
-                    const rs = readings[k];
-                    if (rs) {
-                      const rEl = new Elem('div')
-                        .attr({ style: 'flex-grow: 1' })
-                        .append(new Elem('b').innerText('Kunyomi: '));
-                      let r = '';
-                      while ((r = rs.shift() || '')) {
-                        rEl.append(
-                          ...r
-                            .split('.')
-                            .map((s, i) =>
-                              new Elem(
-                                'span',
-                                i % 2 ? 'okurigana' : '',
-                              ).innerText(s),
-                            ),
-                        );
-                        if (rs.length) {
-                          rEl.append(', ');
-                        }
-                      }
-                      out.push(rEl);
-                      delete readings[k];
-                    }
-                  }
-
-                  for (const [k, rs] of Object.entries(readings)) {
-                    const rEl = new Elem('div')
-                      .attr({ style: 'flex-grow: 1' })
-                      .append(
-                        new Elem('b').innerText(
-                          `${k[0].toLocaleUpperCase() + k.slice(1)}: `,
-                        ),
-                      );
-                    let r = '';
-                    while ((r = rs.shift() || '')) {
-                      rEl.append(r);
-                      if (rs.length) {
-                        rEl.append(', ');
-                      }
-                    }
-                    out.push(rEl);
-                  }
-
-                  return out;
-                }
-
-                return [
-                  new Elem('b').innerText(i + 1 + '. '),
-                  g.meanings.map((m) => m.value).join('; '),
-                ];
-              })
-              .flatMap((r) => [...r, new Elem('br')])
-          : [new Elem('br')]),
+        ...kanjiMakeSummary(entry),
+        new Elem('br'),
         new Elem('details').append(
           new Elem('summary')
             .attr({ style: 'cursor: pointer' })
@@ -281,4 +226,112 @@ async function loadKanji() {
       );
     }
   };
+}
+
+function kanjiMakeSummary({ readingMeaning }: Kanjidic2Character) {
+  if (!readingMeaning) {
+    return [new Elem('br')];
+  }
+  const out: Elem[] = [];
+
+  readingMeaning.groups.map((g, i) => {
+    if (i) {
+      out.push(new Elem('br'));
+    }
+
+    if (form.qtype === 'Reading') {
+      const readings: Record<string, string[]> = {};
+      for (const r of g.readings) {
+        const prev = readings[r.type] || [];
+        prev.push(r.value);
+        readings[r.type] = prev;
+      }
+
+      {
+        const k = 'ja_on';
+        const rs = readings[k];
+        if (rs) {
+          const rEl = new Elem('div')
+            .attr({ style: 'flex-grow: 1' })
+            .append(new Elem('b').innerText('Onyomi: '));
+          let r = '';
+          while ((r = rs.shift() || '')) {
+            rEl.append(r);
+            if (rs.length) {
+              rEl.append(', ');
+            }
+          }
+          out.push(rEl);
+          delete readings[k];
+        }
+      }
+
+      {
+        const k = 'ja_kun';
+        const rs = readings[k];
+        if (rs) {
+          const rEl = new Elem('div')
+            .attr({ style: 'flex-grow: 1' })
+            .append(new Elem('b').innerText('Kunyomi: '));
+          let r = '';
+          while ((r = rs.shift() || '')) {
+            rEl.append(
+              ...r
+                .split('.')
+                .map((s, i) =>
+                  new Elem('span', i % 2 ? 'okurigana' : '').innerText(s),
+                ),
+            );
+            if (rs.length) {
+              rEl.append(', ');
+            }
+          }
+          out.push(rEl);
+          delete readings[k];
+        }
+      }
+
+      for (const [k, rs] of Object.entries(readings)) {
+        const rEl = new Elem('div')
+          .attr({ style: 'flex-grow: 1' })
+          .append(
+            new Elem('b').innerText(
+              `${k[0].toLocaleUpperCase() + k.slice(1)}: `,
+            ),
+          );
+        let r = '';
+        while ((r = rs.shift() || '')) {
+          rEl.append(r);
+          if (rs.length) {
+            rEl.append(', ');
+          }
+        }
+        out.push(rEl);
+      }
+
+      return;
+    }
+
+    out.push(
+      new Elem('div').append(
+        new Elem('b').innerText(i + 1 + '. '),
+        new Elem('span').innerText(g.meanings.map((m) => m.value).join('; ')),
+      ),
+    );
+  });
+
+  if (form.qtype === 'Reading') {
+    if (readingMeaning.nanori.length) {
+      out.push(
+        new Elem('div')
+          .attr({ style: 'flex-grow: 1' })
+          .append(
+            new Elem('b').innerText('Nanori: '),
+            new Elem('span').innerText(readingMeaning.nanori.join(', ')),
+          ),
+      );
+    }
+  }
+
+  return out;
 }
