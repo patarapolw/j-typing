@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "publish": "tsc && vite build --base=/j-typing/ && gh-pages -d dist"
   },
   "dependencies": {
     "dexie": "^3.2.4",
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@scriptin/jmdict-simplified-types": "^3.5.0",
     "@types/wanakana": "^4.0.5",
+    "gh-pages": "^6.0.0",
     "prettier": "^3.0.3",
     "typescript": "^5.0.2",
     "vite": "^4.4.5"
