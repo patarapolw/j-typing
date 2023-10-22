@@ -91,6 +91,7 @@ button:focus-visible {
   border-radius: 5px 5px 0 0;
   margin: 0;
   padding: 0.2em;
+  font-size: 20px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -123,4 +124,28 @@ section.output {
 
 code > pre {
   text-align: left;
+}
+
+.okurigana {
+  color: gray;
+  text-decoration: underline;
+}
+
+.result--correct {
+  background-color: rgb(0, 184, 0);
+  color: white;
+}
+
+.result--incorrect {
+  background-color: red;
+  color: white;
+}
+
+.result--manual {
+  background-color: yellow;
+}
+
+code > pre {
+  background-color: #ddd;
+  padding: 0.5em;
 }
