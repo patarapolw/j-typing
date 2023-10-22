@@ -166,24 +166,6 @@ function kanjiMakeSummary(
         }
       }
 
-      for (const [k, rs] of Object.entries(readings)) {
-        const rEl = new Elem('div')
-          .attr({ style: 'flex-grow: 1' })
-          .append(
-            new Elem('b').innerText(
-              `${k[0].toLocaleUpperCase() + k.slice(1)}: `,
-            ),
-          );
-        let r = '';
-        while ((r = rs.shift() || '')) {
-          rEl.append(r);
-          if (rs.length) {
-            rEl.append(', ');
-          }
-        }
-        out.push(rEl);
-      }
-
       return;
     }
 

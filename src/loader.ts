@@ -53,6 +53,11 @@ export class BodyEl {
             }
           });
         }),
+        new Elem('div')
+          .attr({
+            style: 'font-size: 0.7em; text-align: center; margin-bottom: 1em',
+          })
+          .innerText('Multiple answers with / or ・'),
       );
 
     this.formEl.el.onsubmit = (ev) => {
