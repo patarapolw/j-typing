@@ -1,0 +1,23 @@
+{
+  "name": "j-typing",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "dexie": "^3.2.4",
+    "wanakana": "^5.2.0",
+    "yaml": "^2.3.3"
+  },
+  "devDependencies": {
+    "@scriptin/jmdict-simplified-types": "^3.5.0",
+    "@types/wanakana": "^4.0.5",
+    "prettier": "^3.0.3",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5"
+  }
+}
