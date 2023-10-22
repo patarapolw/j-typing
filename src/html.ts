@@ -33,14 +33,14 @@ export class Elem<T extends HTMLElement = HTMLElement> {
     return this;
   }
 
-  append(...nodes: (Elem | string)[]) {
+  append(...nodes: (Elem | HTMLElement | string)[]) {
     this.el.append(
       ...nodes.filter((n) => n).map((n) => (n instanceof Elem ? n.el : n)),
     );
     return this;
   }
 
-  prepend(...nodes: (Elem | string)[]) {
+  prepend(...nodes: (Elem | HTMLElement | string)[]) {
     this.el.prepend(
       ...nodes.filter((n) => n).map((n) => (n instanceof Elem ? n.el : n)),
     );

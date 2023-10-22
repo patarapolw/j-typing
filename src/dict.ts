@@ -6,6 +6,8 @@ import type {
 } from '@scriptin/jmdict-simplified-types';
 import Dexie, { Table } from 'dexie';
 
+export type SubjectType = 'Kanji' | 'Vocabulary';
+
 export type KanEntry = Kanjidic2Character;
 
 export type VocEntry = JMdictWord;
