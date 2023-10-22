@@ -93,6 +93,19 @@ export class BodyEl {
             .filter((v) => v)
         : [];
 
+      if (this.qtype === 'Reading' && answers.length) {
+        const reText = this.displayEl.el.innerText.replace(
+          /\p{sc=Han}+/gu,
+          '.+',
+        );
+        if (reText.includes('.')) {
+          const re = new RegExp('^' + reText + '$');
+          if (answers.some((a) => !re.test(a))) {
+            return;
+          }
+        }
+      }
+
       this.result = this.qtype === 'Reading' ? 'incorrect' : 'manual';
       this.onsubmit(ev, answers);
 
