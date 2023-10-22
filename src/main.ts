@@ -5,7 +5,7 @@ import yaml from 'yaml';
 
 const mainEl = new Elem('main');
 
-const displayEl = new Elem('div')
+const displayEl = new Elem('div', 'display', 'loading')
   .attr({ lang: 'ja', style: 'align:center; flex-grow: 1' })
   .innerText('Loading...');
 
@@ -44,6 +44,7 @@ async function loadKanji() {
     .toArray();
 
   displayEl.apply((el) => {
+    el.classList.remove('loading');
     el.lang = 'ja';
     el.style.fontSize = '10em';
     el.innerText = entry.literal;

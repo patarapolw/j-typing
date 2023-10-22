@@ -81,6 +81,12 @@ button:focus-visible {
   align-items: center;
 }
 
+.display {
+  min-height: 18rem;
+  position: relative;
+  top: 50%;
+}
+
 .prompt {
   border-radius: 5px 5px 0 0;
   margin: 0;
