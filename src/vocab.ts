@@ -139,8 +139,14 @@ function vocabChecker(answers: string[], entry: VocabResult, body: BodyEl) {
 function vocabMakeSummary(body: BodyEl, entry: VocabResult) {
   const out: Elem[] = [];
 
+  const isMulti = entry.jmdict.length > 1;
+
   entry.jmdict.map((et, i) => {
-    if (body.qtype === 'Reading') {
+    if (body.qtype !== 'Reading' && i) {
+      out.push(new Elem('br'));
+    }
+
+    if (body.qtype === 'Reading' || isMulti) {
       out.push(
         new Elem('div').innerText(
           et.kana
@@ -149,9 +155,9 @@ function vocabMakeSummary(body: BodyEl, entry: VocabResult) {
             .join(', '),
         ),
       );
-    } else {
-      if (i) out.push(new Elem('br'));
+    }
 
+    if (body.qtype !== 'Reading') {
       et.sense.map((s, i) => {
         out.push(
           new Elem('div').append(
