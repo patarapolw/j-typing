@@ -1,12 +1,15 @@
 import * as wanakana from 'wanakana';
 import yaml from 'yaml';
 
-import { JMdictWord } from '@scriptin/jmdict-simplified-types';
-
-import { Dict } from './dict';
+import { Dict, FreqEntry, VocEntry } from './dict';
 import { jTyping } from './export';
 import { Elem } from './html';
 import { BodyEl } from './loader';
+
+export interface VocabResult {
+  wordfreq?: FreqEntry;
+  jmdict: VocEntry[];
+}
 
 export async function loadVocab(body: BodyEl, dict: Dict) {
   body.loadNext = () => loadVocab(body, dict);
@@ -15,10 +18,13 @@ export async function loadVocab(body: BodyEl, dict: Dict) {
 
   if (!entry0) {
     const sel = dict.voc;
-    [entry0] = await sel
+    const jmdict = await sel
       .offset(Math.random() * (await sel.count()))
       .limit(1)
       .toArray();
+    if (jmdict.length) {
+      entry0 = { jmdict };
+    }
   }
 
   body.stype = 'Vocabulary';
@@ -26,7 +32,7 @@ export async function loadVocab(body: BodyEl, dict: Dict) {
   body.result = '';
 
   if (!entry0) return;
-  const { v, ...entry } = entry0;
+  const entry = entry0;
 
   body.displayEl.apply((el) => {
     el.classList.remove('loading');
@@ -36,12 +42,12 @@ export async function loadVocab(body: BodyEl, dict: Dict) {
     if (entry.wordfreq) {
       el.innerText = entry.wordfreq.id;
     } else {
-      let kCommon = entry.kanji.filter((k) => k.common);
+      let kCommon = entry.jmdict.flatMap((et) => et.v);
       if (!kCommon.length) {
-        kCommon = entry.kana.filter((k) => k.common);
+        kCommon = entry.jmdict.flatMap((et) => et.kana.map((k) => k.text));
       }
 
-      el.innerText = kCommon[Math.floor(Math.random() * kCommon.length)].text;
+      el.innerText = kCommon[Math.floor(Math.random() * kCommon.length)];
     }
   });
 
@@ -57,7 +63,12 @@ export async function loadVocab(body: BodyEl, dict: Dict) {
             .attr({ style: 'cursor: pointer' })
             .innerText('Full entry'),
           new Elem('code').append(
-            new Elem('pre').innerText(yaml.stringify(entry)),
+            new Elem('pre').innerText(
+              yaml.stringify({
+                ...entry,
+                jmdict: entry.jmdict.map(({ v, ...et }) => et),
+              }),
+            ),
           ),
         ),
       );
@@ -65,7 +76,7 @@ export async function loadVocab(body: BodyEl, dict: Dict) {
   };
 }
 
-function vocabChecker(answers: string[], entry: JMdictWord, body: BodyEl) {
+function vocabChecker(answers: string[], entry: VocabResult, body: BodyEl) {
   if (!answers.length) {
     body.result = 'manual';
     return;
@@ -75,7 +86,7 @@ function vocabChecker(answers: string[], entry: JMdictWord, body: BodyEl) {
     answers.every((ans, i) => {
       if (body.qtype === 'Reading') {
         ans = wanakana.toKatakana(ans);
-        for (const r of entry.kana) {
+        for (const r of entry.jmdict.flatMap((et) => et.kana)) {
           if (wanakana.toKatakana(r.text) === ans) {
             if (
               r.appliesToKanji[0] !== '*' &&
@@ -94,7 +105,7 @@ function vocabChecker(answers: string[], entry: JMdictWord, body: BodyEl) {
           }
         }
       } else {
-        for (const r of entry.sense) {
+        for (const r of entry.jmdict.flatMap((et) => et.sense)) {
           if (
             r.appliesToKanji[0] !== '*' &&
             !r.appliesToKanji.includes(body.displayEl.el.innerText)
@@ -114,28 +125,32 @@ function vocabChecker(answers: string[], entry: JMdictWord, body: BodyEl) {
   }
 }
 
-function vocabMakeSummary(body: BodyEl, entry: JMdictWord) {
+function vocabMakeSummary(body: BodyEl, entry: VocabResult) {
   const out: Elem[] = [];
 
-  if (body.qtype === 'Reading') {
-    out.push(
-      new Elem('div').innerText(
-        entry.kana
-          .filter((k) => k.common)
-          .map((k) => k.text)
-          .join(', '),
-      ),
-    );
-  } else {
-    entry.sense.map((s, i) => {
+  entry.jmdict.map((et, i) => {
+    if (i) out.push(new Elem('br'));
+
+    if (body.qtype === 'Reading') {
       out.push(
-        new Elem('div').append(
-          new Elem('b').innerText(i + 1 + '. '),
-          new Elem('span').innerText(s.gloss.map((m) => m.text).join('; ')),
+        new Elem('div').innerText(
+          et.kana
+            .filter((k) => k.common)
+            .map((k) => k.text)
+            .join(', '),
         ),
       );
-    });
-  }
+    } else {
+      et.sense.map((s, i) => {
+        out.push(
+          new Elem('div').append(
+            new Elem('b').innerText(i + 1 + '. '),
+            new Elem('span').innerText(s.gloss.map((m) => m.text).join('; ')),
+          ),
+        );
+      });
+    }
+  });
 
   return out;
 }

@@ -12,29 +12,39 @@ export type KanEntry = Kanjidic2Character;
 export type VocEntry = JMdictWord & {
   v: string[];
 };
-export type JFreqEntry = {
+export type FreqEntry = {
   id: string;
-  f: number;
+  zipf: number;
 };
 
 export class Dict extends Dexie {
   kan!: Table<KanEntry>;
   voc!: Table<VocEntry, string>;
-  jfreq!: Table<JFreqEntry, string>;
+  jfreq!: Table<FreqEntry, string>;
 
   constructor() {
     super('Dict');
-    this.version(3)
+    this.version(6)
       .stores({
         kan: '++id,literal,misc.grade,misc.jlptLevel,misc.frequency',
         voc: 'id,*v',
-        jfreq: 'id,f',
+        jfreq: 'id,zipf',
       })
       .upgrade((tx) => {
         tx.table('voc')
           .toCollection()
           .modify((voc: VocEntry) => {
+            if (voc.v) return;
             voc.v = voc.kanji.filter((k) => k.common).map((k) => k.text);
+          });
+        tx.table('jfreq')
+          .toCollection()
+          .modify((jfreq) => {
+            if (!jfreq.f) return;
+            if (!jfreq.zipf) {
+              jfreq.zipf = jfreq.f;
+            }
+            delete jfreq.f;
           });
       });
   }
@@ -67,7 +77,7 @@ export class Dict extends Dexie {
       await this.jfreq.bulkPut(
         Object.entries(
           (await import('../assets/ja_freq.json')).default.common,
-        ).map(([id, f]) => ({ id, f })),
+        ).map(([id, zipf]) => ({ id, zipf })),
       );
     }
   }

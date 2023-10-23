@@ -1,6 +1,5 @@
-import type { Collection, IndexableType } from 'dexie';
-
-import { Dict, JFreqEntry, KanEntry, VocEntry } from './dict';
+import { Dict, KanEntry } from './dict';
+import { VocabResult } from './vocab';
 
 export const jTyping = {
   filter: {
@@ -12,25 +11,24 @@ export const jTyping = {
         .toArray();
       return entry;
     },
-    vocab: async (
-      dict: Dict,
-    ): Promise<(VocEntry & { wordfreq?: JFreqEntry }) | null> => {
-      const sel = dict.jfreq.where('f').aboveOrEqual(1);
+    vocab: async (dict: Dict): Promise<VocabResult | null> => {
+      const sel = dict.jfreq.where('zipf').aboveOrEqual(5);
       const [wordfreq] = await sel
         .offset(Math.random() * (await sel.count()))
         .limit(1)
         .toArray();
       if (!wordfreq) return null;
 
-      const [entry] = await dict.voc
+      const jmdict = await dict.voc
         .where('v')
         .equals(wordfreq.id)
         .limit(1)
         .toArray();
+      if (!jmdict.length) return null;
 
       return {
-        ...entry,
         wordfreq,
+        jmdict,
       };
     },
   },
