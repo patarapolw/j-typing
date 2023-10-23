@@ -1,11 +1,11 @@
-import { Dict } from './dict';
-import { KanjiResult } from './kanji';
-import { VocabResult } from './vocab';
+import type { Dict } from './dict';
+import type { KanjiResult } from './kanji';
+import type { VocabResult } from './vocab';
 
 export const jTyping = {
   filter: {
     kanji: async (dict: Dict): Promise<KanjiResult | null> => {
-      const sel = dict.kan.where('misc.grade').belowOrEqual(9);
+      const sel = dict.kan.where('misc.grade').belowOrEqual(8);
       const [kanjidic] = await sel
         .offset(Math.random() * (await sel.count()))
         .limit(1)

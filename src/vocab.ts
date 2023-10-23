@@ -1,10 +1,11 @@
 import * as wanakana from 'wanakana';
 import yaml from 'yaml';
 
-import { Dict, FreqEntry, VocEntry } from './dict';
 import { jTyping } from './export';
 import { Elem } from './html';
-import { BodyEl } from './loader';
+
+import type { BodyEl } from './loader';
+import type { Dict, FreqEntry, VocEntry } from './dict';
 
 export interface VocabResult {
   wordfreq?: FreqEntry;
@@ -64,10 +65,20 @@ export async function loadVocab(body: BodyEl, dict: Dict) {
             .innerText('Full entry'),
           new Elem('code').append(
             new Elem('pre').innerText(
-              yaml.stringify({
-                ...entry,
-                jmdict: entry.jmdict.map(({ v, ...et }) => et),
-              }),
+              yaml.stringify(
+                {
+                  ...entry,
+                  jmdict: entry.jmdict.map(({ v, ...et }) => et),
+                },
+                (k, v) => {
+                  if (Array.isArray(v)) {
+                    if (!v.length) return;
+                    if (v[0] === '*') return;
+                  }
+                  if (v === null) return;
+                  return v;
+                },
+              ),
             ),
           ),
         ),
@@ -129,8 +140,6 @@ function vocabMakeSummary(body: BodyEl, entry: VocabResult) {
   const out: Elem[] = [];
 
   entry.jmdict.map((et, i) => {
-    if (i) out.push(new Elem('br'));
-
     if (body.qtype === 'Reading') {
       out.push(
         new Elem('div').innerText(
@@ -141,6 +150,8 @@ function vocabMakeSummary(body: BodyEl, entry: VocabResult) {
         ),
       );
     } else {
+      if (i) out.push(new Elem('br'));
+
       et.sense.map((s, i) => {
         out.push(
           new Elem('div').append(

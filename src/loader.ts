@@ -95,7 +95,7 @@ export class BodyEl {
 
       if (this.qtype === 'Reading' && answers.length) {
         const reText = this.displayEl.el.innerText.replace(
-          /\p{sc=Han}+/gu,
+          /[^\p{sc=Katakana}\p{sc=Hiragana}・ー]+/gu,
           '.+',
         );
         if (reText.includes('.')) {

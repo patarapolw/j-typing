@@ -1,10 +1,11 @@
 import * as wanakana from 'wanakana';
 import yaml from 'yaml';
 
-import { Dict, KanEntry } from './dict';
 import { jTyping } from './export';
 import { Elem } from './html';
-import { BodyEl } from './loader';
+
+import type { Dict, KanEntry } from './dict';
+import type { BodyEl } from './loader';
 
 export interface KanjiResult {
   kanjidic: KanEntry;
@@ -52,7 +53,12 @@ export async function loadKanji(body: BodyEl, dict: Dict) {
             .attr({ style: 'cursor: pointer' })
             .innerText('Full entry'),
           new Elem('code').append(
-            new Elem('pre').innerText(yaml.stringify({ kanjidic: entry })),
+            new Elem('pre').innerText(
+              yaml.stringify({ kanjidic: entry }, (k, v) => {
+                if (v === null) return;
+                return v;
+              }),
+            ),
           ),
         ),
       );
