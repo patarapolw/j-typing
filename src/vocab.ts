@@ -4,13 +4,14 @@ import yaml from 'yaml';
 import { JMdictWord } from '@scriptin/jmdict-simplified-types';
 
 import { Dict } from './dict';
+import { jTyping } from './export';
 import { Elem } from './html';
 import { BodyEl } from './loader';
 
 export async function loadVocab(body: BodyEl, dict: Dict) {
   body.loadNext = () => loadVocab(body, dict);
 
-  const sel = dict.voc;
+  const sel = jTyping?.filter?.vocab?.(dict) || dict.voc;
 
   const [entry] = await sel
     .offset(Math.random() * (await sel.count()))

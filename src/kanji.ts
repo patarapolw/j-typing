@@ -4,13 +4,14 @@ import yaml from 'yaml';
 import { Kanjidic2Character } from '@scriptin/jmdict-simplified-types';
 
 import { Dict } from './dict';
+import { jTyping } from './export';
 import { Elem } from './html';
 import { BodyEl } from './loader';
 
 export async function loadKanji(body: BodyEl, dict: Dict) {
   body.loadNext = () => loadKanji(body, dict);
 
-  const sel = dict.kan.where('misc.grade').belowOrEqual(9);
+  const sel = jTyping?.filter?.kanji?.(dict) || dict.kan;
   const [entry] = await sel
     .offset(Math.random() * (await sel.count()))
     .limit(1)

@@ -9,7 +9,6 @@ import Dexie, { Table } from 'dexie';
 export type SubjectType = 'Kanji' | 'Vocabulary';
 
 export type KanEntry = Kanjidic2Character;
-
 export type VocEntry = JMdictWord;
 
 export class Dict extends Dexie {

@@ -117,33 +117,48 @@ export class BodyEl {
     };
 
     this.el.append(
-      new Elem(document.createElement('fieldset')).append(
-        new Elem('legend').innerText('Quiz mode'),
-        ...MODES.map((v) =>
-          new Elem('span').append(
-            new Elem(document.createElement('input'))
-              .attr({
-                type: 'radio',
-                name: 'mode',
-                id: v,
-                value: v,
-              })
-              .apply((el) => {
-                if (this.mode === v) {
-                  el.checked = true;
-                }
-                el.oninput = () => {
-                  if (el.checked) {
-                    this.mode = v;
-
-                    history.pushState(v, '', `?mode=${v}`);
-                    this.typingEl.el.value = '';
-                    this.resultEl.empty();
-                    this.changeMode();
+      new Elem('nav').append(
+        new Elem('div').append(
+          new Elem(document.createElement('button'))
+            .innerText('Edit filter')
+            .apply((el) => {
+              el.onclick = () => {
+                open(
+                  'https://github.com/patarapolw/j-typing/blob/main/docs/filter.md',
+                  '_blank',
+                );
+              };
+            }),
+        ),
+        new Elem('div').attr({ style: 'flex-grow: 1' }),
+        new Elem(document.createElement('fieldset')).append(
+          new Elem('legend').innerText('Quiz mode'),
+          ...MODES.map((v) =>
+            new Elem('span').append(
+              new Elem(document.createElement('input'))
+                .attr({
+                  type: 'radio',
+                  name: 'mode',
+                  id: v,
+                  value: v,
+                })
+                .apply((el) => {
+                  if (this.mode === v) {
+                    el.checked = true;
                   }
-                };
-              }),
-            new Elem('label').attr({ for: v }).innerText(v),
+                  el.oninput = () => {
+                    if (el.checked) {
+                      this.mode = v;
+
+                      history.pushState(v, '', `?mode=${v}`);
+                      this.typingEl.el.value = '';
+                      this.resultEl.empty();
+                      this.changeMode();
+                    }
+                  };
+                }),
+              new Elem('label').attr({ for: v }).innerText(v),
+            ),
           ),
         ),
       ),
