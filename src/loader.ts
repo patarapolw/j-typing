@@ -94,13 +94,12 @@ export class BodyEl {
         : [];
 
       if (this.qtype === 'Reading' && answers.length) {
-        const reText = this.displayEl.el.innerText.replace(
-          /[^\p{sc=Katakana}\p{sc=Hiragana}・ー]+/gu,
-          '.+',
-        );
+        const reText = wanakana
+          .toKatakana(this.displayEl.el.innerText)
+          .replace(/[^\p{sc=Katakana}・ー]+/gu, '.+');
         if (reText.includes('.')) {
           const re = new RegExp('^' + reText + '$');
-          if (answers.some((a) => !re.test(a))) {
+          if (answers.some((a) => !re.test(wanakana.toKatakana(a)))) {
             return;
           }
         }
