@@ -1,12 +1,14 @@
 import * as wanakana from 'wanakana';
 import yaml from 'yaml';
 
-import { Kanjidic2Character } from '@scriptin/jmdict-simplified-types';
-
-import { Dict } from './dict';
+import { Dict, KanEntry } from './dict';
 import { jTyping } from './export';
 import { Elem } from './html';
 import { BodyEl } from './loader';
+
+export interface KanjiResult {
+  kanjidic: KanEntry;
+}
 
 export async function loadKanji(body: BodyEl, dict: Dict) {
   body.loadNext = () => loadKanji(body, dict);
@@ -15,10 +17,13 @@ export async function loadKanji(body: BodyEl, dict: Dict) {
 
   if (!entry0) {
     const sel = dict.kan;
-    [entry0] = await sel
+    const [kanjidic] = await sel
       .offset(Math.random() * (await sel.count()))
       .limit(1)
       .toArray();
+    if (kanjidic) {
+      entry0 = { kanjidic };
+    }
   }
 
   body.stype = 'Kanji';
@@ -32,7 +37,7 @@ export async function loadKanji(body: BodyEl, dict: Dict) {
     el.classList.remove('loading');
     el.lang = 'ja';
     el.style.fontSize = '10em';
-    el.innerText = entry.literal;
+    el.innerText = entry.kanjidic.literal;
   });
 
   body.onsubmit = (ev, answers) => {
@@ -57,7 +62,7 @@ export async function loadKanji(body: BodyEl, dict: Dict) {
 
 function kanjiChecker(
   answers: string[],
-  { readingMeaning }: Kanjidic2Character,
+  { kanjidic: { readingMeaning } }: KanjiResult,
   body: BodyEl,
 ) {
   if (!answers.length || !readingMeaning) {
@@ -110,7 +115,7 @@ function kanjiChecker(
 
 function kanjiMakeSummary(
   body: BodyEl,
-  { readingMeaning }: Kanjidic2Character,
+  { kanjidic: { readingMeaning } }: KanjiResult,
 ) {
   if (!readingMeaning) {
     return [new Elem('br')];
