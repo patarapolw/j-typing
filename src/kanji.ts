@@ -11,15 +11,22 @@ import { BodyEl } from './loader';
 export async function loadKanji(body: BodyEl, dict: Dict) {
   body.loadNext = () => loadKanji(body, dict);
 
-  const sel = jTyping?.filter?.kanji?.(dict) || dict.kan;
-  const [entry] = await sel
-    .offset(Math.random() * (await sel.count()))
-    .limit(1)
-    .toArray();
+  let entry0 = await jTyping?.filter?.kanji?.(dict);
+
+  if (!entry0) {
+    const sel = dict.kan;
+    [entry0] = await sel
+      .offset(Math.random() * (await sel.count()))
+      .limit(1)
+      .toArray();
+  }
 
   body.stype = 'Kanji';
   body.qtype = 'Reading';
   body.result = '';
+
+  if (!entry0) return;
+  const entry = entry0;
 
   body.displayEl.apply((el) => {
     el.classList.remove('loading');

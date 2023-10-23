@@ -1,14 +1,37 @@
 import type { Collection, IndexableType } from 'dexie';
 
-import { Dict, KanEntry, VocEntry } from './dict';
+import { Dict, JFreqEntry, KanEntry, VocEntry } from './dict';
 
 export const jTyping = {
   filter: {
-    kanji: (dict: Dict): Collection<KanEntry, IndexableType> | null => {
-      return dict.kan.where('misc.grade').belowOrEqual(9);
+    kanji: async (dict: Dict): Promise<KanEntry | null> => {
+      const sel = dict.kan.where('misc.grade').belowOrEqual(9);
+      const [entry] = await sel
+        .offset(Math.random() * (await sel.count()))
+        .limit(1)
+        .toArray();
+      return entry;
     },
-    vocab: (dict: Dict): Collection<VocEntry, IndexableType> | null => {
-      return dict.voc.toCollection();
+    vocab: async (
+      dict: Dict,
+    ): Promise<(VocEntry & { wordfreq?: JFreqEntry }) | null> => {
+      const sel = dict.jfreq.where('f').aboveOrEqual(1);
+      const [wordfreq] = await sel
+        .offset(Math.random() * (await sel.count()))
+        .limit(1)
+        .toArray();
+      if (!wordfreq) return null;
+
+      const [entry] = await dict.voc
+        .where('v')
+        .equals(wordfreq.id)
+        .limit(1)
+        .toArray();
+
+      return {
+        ...entry,
+        wordfreq,
+      };
     },
   },
 };

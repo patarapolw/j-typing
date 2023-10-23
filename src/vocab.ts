@@ -11,28 +11,38 @@ import { BodyEl } from './loader';
 export async function loadVocab(body: BodyEl, dict: Dict) {
   body.loadNext = () => loadVocab(body, dict);
 
-  const sel = jTyping?.filter?.vocab?.(dict) || dict.voc;
+  let entry0 = await jTyping?.filter?.vocab?.(dict);
 
-  const [entry] = await sel
-    .offset(Math.random() * (await sel.count()))
-    .limit(1)
-    .toArray();
+  if (!entry0) {
+    const sel = dict.voc;
+    [entry0] = await sel
+      .offset(Math.random() * (await sel.count()))
+      .limit(1)
+      .toArray();
+  }
 
   body.stype = 'Vocabulary';
   body.qtype = 'Reading';
   body.result = '';
+
+  if (!entry0) return;
+  const { v, ...entry } = entry0;
 
   body.displayEl.apply((el) => {
     el.classList.remove('loading');
     el.lang = 'ja';
     el.style.fontSize = '6em';
 
-    let kCommon = entry.kanji.filter((k) => k.common);
-    if (!kCommon.length) {
-      kCommon = entry.kana.filter((k) => k.common);
-    }
+    if (entry.wordfreq) {
+      el.innerText = entry.wordfreq.id;
+    } else {
+      let kCommon = entry.kanji.filter((k) => k.common);
+      if (!kCommon.length) {
+        kCommon = entry.kana.filter((k) => k.common);
+      }
 
-    el.innerText = kCommon[Math.floor(Math.random() * kCommon.length)].text;
+      el.innerText = kCommon[Math.floor(Math.random() * kCommon.length)].text;
+    }
   });
 
   body.onsubmit = (ev, answers) => {
