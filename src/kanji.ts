@@ -47,7 +47,7 @@ export async function loadKanji(body: BodyEl, dict: Dict) {
             .attr({ style: 'cursor: pointer' })
             .innerText('Full entry'),
           new Elem('code').append(
-            new Elem('pre').innerText(yaml.stringify(entry)),
+            new Elem('pre').innerText(yaml.stringify({ kanjidic: entry })),
           ),
         ),
       );
