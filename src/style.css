@@ -36,6 +36,38 @@ button + button {
   margin-left: 1em;
 }
 
+.display-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.display {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.display.kanji {
+  font-size: 10em;
+}
+
+.display.vocab {
+  font-size: 6em;
+}
+
+@media screen and (max-width: 500px) {
+  .display.vocab {
+    font-size: 4.5em;
+  }
+}
+
+@media screen and (max-width: 300px) {
+  .display.vocab {
+    font-size: 3.5em;
+  }
+}
+
 form.typing {
   max-width: 100%;
   width: 650px;
@@ -83,11 +115,14 @@ section.output {
 code > pre {
   text-align: left;
   overflow-x: scroll;
+}
+
+.no-scroll {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
 
-pre::-webkit-scrollbar {
+.no-scroll::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
 }
 

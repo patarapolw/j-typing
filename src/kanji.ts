@@ -35,9 +35,8 @@ export async function loadKanji(body: BodyEl, dict: Dict) {
   const entry = entry0;
 
   body.displayEl.apply((el) => {
-    el.classList.remove('loading');
-    el.lang = 'ja';
-    el.style.fontSize = '10em';
+    el.classList.remove('loading', 'vocab');
+    el.classList.add('kanji');
     el.innerText = entry.kanjidic.literal;
   });
 
@@ -53,7 +52,7 @@ export async function loadKanji(body: BodyEl, dict: Dict) {
             .attr({ style: 'cursor: pointer' })
             .innerText('Full entry'),
           new Elem('code', 'full-entry').append(
-            new Elem('pre').innerText(
+            new Elem('pre', 'no-scroll').innerText(
               yaml.stringify({ kanjidic: entry }, (k, v) => {
                 if (v === null) return;
                 return v;

@@ -36,9 +36,8 @@ export async function loadVocab(body: BodyEl, dict: Dict) {
   const entry = entry0;
 
   body.displayEl.apply((el) => {
-    el.classList.remove('loading');
-    el.lang = 'ja';
-    el.style.fontSize = '6em';
+    el.classList.remove('loading', 'kanji');
+    el.classList.add('vocab');
 
     if (entry.wordfreq) {
       el.innerText = entry.wordfreq.id;
@@ -64,7 +63,7 @@ export async function loadVocab(body: BodyEl, dict: Dict) {
             .attr({ style: 'cursor: pointer' })
             .innerText('Full entry'),
           new Elem('code', 'full-entry').append(
-            new Elem('pre').innerText(
+            new Elem('pre', 'no-scroll').innerText(
               yaml.stringify(
                 {
                   ...entry,

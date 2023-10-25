@@ -8,7 +8,7 @@ const MODES: SubjectType[] = ['Kanji', 'Vocabulary'];
 export class BodyEl {
   el = new Elem('main');
   displayEl = new Elem('div', 'display', 'loading')
-    .attr({ lang: 'ja', style: 'align:center; flex-grow: 1' })
+    .attr({ lang: 'ja' })
     .innerText('Loading...');
   formEl = new Elem(document.createElement('form'), 'typing');
 
@@ -157,12 +157,7 @@ export class BodyEl {
           ),
         ),
       ),
-      new Elem('div')
-        .attr({
-          style:
-            'display: flex; align-items: center; justify-content: center; min-height: 300px',
-        })
-        .append(this.displayEl),
+      new Elem('div', 'display-container').append(this.displayEl),
       this.formEl,
       this.resultEl,
     );
