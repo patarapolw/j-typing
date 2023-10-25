@@ -10,9 +10,7 @@ export class BodyEl {
   displayEl = new Elem('div', 'display', 'loading')
     .attr({ lang: 'ja', style: 'align:center; flex-grow: 1' })
     .innerText('Loading...');
-  formEl = new Elem(document.createElement('form')).attr({
-    style: 'width: 500px',
-  });
+  formEl = new Elem(document.createElement('form'), 'typing');
 
   resultEl = new Elem('section', 'output');
 
@@ -40,25 +38,23 @@ export class BodyEl {
   private _result: '' | 'correct' | 'incorrect' | 'retry' | 'manual' = '';
 
   constructor() {
-    this.formEl = new Elem(document.createElement('form'))
-      .attr({ style: 'width: 500px' })
-      .append(
-        this.labelEl.append(this.subjectTypeEl, this.quizTypeEl),
-        this.typingEl.apply((el) => {
-          el.addEventListener('keydown', (ev) => {
-            if (this.result) {
-              if (ev.key !== 'Enter') {
-                ev.preventDefault();
-              }
+    this.formEl = this.formEl.append(
+      this.labelEl.append(this.subjectTypeEl, this.quizTypeEl),
+      this.typingEl.apply((el) => {
+        el.addEventListener('keydown', (ev) => {
+          if (this.result) {
+            if (ev.key !== 'Enter') {
+              ev.preventDefault();
             }
-          });
-        }),
-        new Elem('div')
-          .attr({
-            style: 'font-size: 0.7em; text-align: center; margin-bottom: 1em',
-          })
-          .innerText('Multiple answers with / or ・'),
-      );
+          }
+        });
+      }),
+      new Elem('div')
+        .attr({
+          style: 'font-size: 0.7em; text-align: center; margin-bottom: 1em',
+        })
+        .innerText('Multiple answers with / or ・'),
+    );
 
     this.formEl.el.onsubmit = (ev) => {
       ev.preventDefault();

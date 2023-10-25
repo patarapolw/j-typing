@@ -63,7 +63,7 @@ export async function loadVocab(body: BodyEl, dict: Dict) {
           new Elem('summary')
             .attr({ style: 'cursor: pointer' })
             .innerText('Full entry'),
-          new Elem('code').append(
+          new Elem('code', 'full-entry').append(
             new Elem('pre').innerText(
               yaml.stringify(
                 {
