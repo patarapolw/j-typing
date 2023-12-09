@@ -8,6 +8,9 @@ dependencies:
   dexie:
     specifier: ^3.2.4
     version: 3.2.4
+  diff:
+    specifier: ^5.1.0
+    version: 5.1.0
   wanakana:
     specifier: ^5.2.0
     version: 5.2.0
@@ -19,6 +22,9 @@ devDependencies:
   '@scriptin/jmdict-simplified-types':
     specifier: ^3.5.0
     version: 3.5.0
+  '@types/diff':
+    specifier: ^5.0.8
+    version: 5.0.8
   '@types/wanakana':
     specifier: ^4.0.5
     version: 4.0.5
@@ -239,6 +245,10 @@ packages:
     resolution: {integrity: sha512-cs2vQv2U8cCKGHHRbbxBvozfboBOA4HOpofr/81H+F7i3RK/LmWCrDkW3LCS7mFYpfrxstlSD2YyCzHMz0avxQ==}
     dev: true
 
+  /@types/diff@5.0.8:
+    resolution: {integrity: sha512-kR0gRf0wMwpxQq6ME5s+tWk9zVCfJUl98eRkD05HWWRbhPB/eu4V1IbyZAsvzC1Gn4znBJ0HN01M4DGXdBEV8Q==}
+    dev: true
+
   /@types/wanakana@4.0.5:
     resolution: {integrity: sha512-4WpzAoYB/iROI48kbQz5R5297G8AtFZEuJnzj2rmGQzii+dodcnOjUwMQZf1EfQOPVDRrT+AAmF15/Nfcm/z5g==}
     dev: true
@@ -286,6 +296,11 @@ packages:
   /dexie@3.2.4:
     resolution: {integrity: sha512-VKoTQRSv7+RnffpOJ3Dh6ozknBqzWw/F3iqMdsZg958R0AS8AnY9x9d1lbwENr0gzeGJHXKcGhAMRaqys6SxqA==}
     engines: {node: '>=6.0'}
+    dev: false
+
+  /diff@5.1.0:
+    resolution: {integrity: sha512-D+mk+qE8VC/PAUrlAU34N+VfXev0ghe5ywmpqrawphmVZc1bEfn56uo9qpyGp1p4xpzOHkSW4ztBd6L7Xx4ACw==}
+    engines: {node: '>=0.3.1'}
     dev: false
 
   /email-addresses@5.0.0:

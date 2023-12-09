@@ -11,11 +11,13 @@
   },
   "dependencies": {
     "dexie": "^3.2.4",
+    "diff": "^5.1.0",
     "wanakana": "^5.2.0",
     "yaml": "^2.3.3"
   },
   "devDependencies": {
     "@scriptin/jmdict-simplified-types": "^3.5.0",
+    "@types/diff": "^5.0.8",
     "@types/wanakana": "^4.0.5",
     "gh-pages": "^6.0.0",
     "prettier": "^3.0.3",

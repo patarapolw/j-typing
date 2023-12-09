@@ -1,8 +1,12 @@
+import { diffChars } from 'diff';
 import * as wanakana from 'wanakana';
 import yaml from 'yaml';
 
+import { JMdictGloss, JMdictKana } from '@scriptin/jmdict-simplified-types';
+
 import { jTyping } from './export';
 import { Elem } from './html';
+import { getDiffSize } from './shared';
 
 import type { BodyEl } from './loader';
 import type { Dict, FreqEntry, VocEntry } from './dict';
@@ -52,11 +56,11 @@ export async function loadVocab(body: BodyEl, dict: Dict) {
   });
 
   body.onsubmit = (ev, answers) => {
-    vocabChecker(answers, entry, body);
+    const summary = vocabChecker(answers, entry, body);
 
     if ((body.result as string) !== 'retry') {
       body.resultEl.append(
-        ...vocabMakeSummary(body, entry),
+        ...summary,
         new Elem('br'),
         new Elem('details').append(
           new Elem('summary')
@@ -86,11 +90,116 @@ export async function loadVocab(body: BodyEl, dict: Dict) {
   };
 }
 
+interface VocabKey {
+  el: Elem;
+  kana?: JMdictKana;
+  gloss?: JMdictGloss;
+}
+
 function vocabChecker(answers: string[], entry: VocabResult, body: BodyEl) {
+  const summary: Elem[] = [];
+
+  const isMulti = entry.jmdict.length > 1;
+  const keys: VocabKey[] = [];
+
+  entry.jmdict.map((et, i) => {
+    if (body.qtype !== 'Reading' && i) {
+      summary.push(new Elem('br'));
+    }
+
+    if (body.qtype === 'Reading' || isMulti) {
+      const line = new Elem('div');
+      summary.push(line);
+      const subs: Elem[] = [];
+
+      et.kana.map((kana) => {
+        const el = new Elem('span');
+        el.innerText(kana.text);
+        keys.push({ el, kana });
+
+        if (kana.common) {
+          subs.push(el);
+        }
+      });
+
+      const last = subs.pop();
+      if (last) {
+        subs.map((s) => {
+          line.append(s, ', ');
+        });
+        line.append(last);
+      }
+    }
+
+    if (body.qtype !== 'Reading') {
+      et.sense.map((s, i) => {
+        summary.push(
+          new Elem('div').append(
+            new Elem('b').innerText(i + 1 + '. '),
+            new Elem('span').innerText(s.gloss.map((m) => m.text).join('; ')),
+          ),
+        );
+      });
+    }
+  });
+
   if (!answers.length) {
     body.result = 'manual';
-    return;
+    return summary;
   }
+
+  let totalMinDiff = -1;
+
+  answers.map((ans, i) => {
+    if (body.qtype === 'Reading') {
+      ans = wanakana.toKatakana(ans);
+
+      const keys = entry.jmdict.flatMap((et) => et.kana);
+      const diffs = keys.map((r) =>
+        diffChars(wanakana.toKatakana(r.text), ans),
+      );
+      const diffSizes = diffs.map((d) => getDiffSize(d));
+      const minDiff = Math.min(...diffSizes);
+
+      keys.map((r, i) => {
+        if (diffSizes[i] === minDiff) {
+        }
+      });
+
+      for (const r of entry.jmdict.flatMap((et) => et.kana)) {
+        if (wanakana.toKatakana(r.text) === ans) {
+          if (
+            r.appliesToKanji[0] !== '*' &&
+            !r.appliesToKanji.includes(body.displayEl.el.innerText)
+          ) {
+            return false;
+          }
+
+          if (!r.common) {
+            body.result = 'manual';
+            continue;
+          }
+
+          answers[i] = r.text;
+          return true;
+        }
+      }
+    } else {
+      for (const r of entry.jmdict.flatMap((et) => et.sense)) {
+        if (
+          r.appliesToKanji[0] !== '*' &&
+          !r.appliesToKanji.includes(body.displayEl.el.innerText)
+        ) {
+          continue;
+        }
+        for (const g of r.gloss) {
+          if (g.text === ans) {
+            return true;
+          }
+        }
+      }
+    }
+  });
 
   if (
     answers.every((ans, i) => {
@@ -133,40 +242,6 @@ function vocabChecker(answers: string[], entry: VocabResult, body: BodyEl) {
   ) {
     body.result = 'correct';
   }
-}
 
-function vocabMakeSummary(body: BodyEl, entry: VocabResult) {
-  const out: Elem[] = [];
-
-  const isMulti = entry.jmdict.length > 1;
-
-  entry.jmdict.map((et, i) => {
-    if (body.qtype !== 'Reading' && i) {
-      out.push(new Elem('br'));
-    }
-
-    if (body.qtype === 'Reading' || isMulti) {
-      out.push(
-        new Elem('div').innerText(
-          et.kana
-            .filter((k) => k.common)
-            .map((k) => k.text)
-            .join(', '),
-        ),
-      );
-    }
-
-    if (body.qtype !== 'Reading') {
-      et.sense.map((s, i) => {
-        out.push(
-          new Elem('div').append(
-            new Elem('b').innerText(i + 1 + '. '),
-            new Elem('span').innerText(s.gloss.map((m) => m.text).join('; ')),
-          ),
-        );
-      });
-    }
-  });
-
-  return out;
+  return summary;
 }
